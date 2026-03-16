@@ -1,35 +1,49 @@
-name: Contribution Bot
+name: Activity Bot
 
 on:
   schedule:
-    - cron: "15 */3 * * *"
+    - cron: "23 5 * * *"
+    - cron: "41 11 * * *"
+    - cron: "17 18 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  contribute:
+  activity:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Random contribution
+      - name: Random activity
         run: |
-          COMMITS=$((RANDOM % 3))
-          if [ "$COMMITS" -eq 0 ]; then
-            echo "No activity this run"
+          CHANCE=$((RANDOM % 100))
+
+          if [ "$CHANCE" -lt 60 ]; then
+            echo "Skipping activity this run"
             exit 0
           fi
 
           git config --global user.name "Matthew Adlaird"
-          git config --global user.email "your-github-email@example.com"
+          git config --global user.email "YOUR_GITHUB_EMAIL"
 
-          MESSAGES=("update docs" "cleanup code" "refactor" "minor improvement" "maintenance" "typo fix")
+          MESSAGES=(
+            "update docs"
+            "minor fix"
+            "refactor"
+            "cleanup"
+            "maintenance"
+            "small improvement"
+          )
 
-          for ((i=1;i<=COMMITS;i++)); do
-            MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
-            echo "$(date)" > activity.log
-            git add activity.log
-            git commit -m "$MSG"
-          done
+          MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
+
+          echo "$(date)" > activity.log
+
+          git add activity.log
+
+          git commit -m "$MSG" || exit 0
 
           git push
