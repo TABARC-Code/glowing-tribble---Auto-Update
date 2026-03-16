@@ -1,0 +1,35 @@
+name: Contribution Bot
+
+on:
+  schedule:
+    - cron: "15 */3 * * *"
+  workflow_dispatch:
+
+jobs:
+  contribute:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Random contribution
+        run: |
+          COMMITS=$((RANDOM % 3))
+          if [ "$COMMITS" -eq 0 ]; then
+            echo "No activity this run"
+            exit 0
+          fi
+
+          git config --global user.name "Matthew Adlaird"
+          git config --global user.email "your-github-email@example.com"
+
+          MESSAGES=("update docs" "cleanup code" "refactor" "minor improvement" "maintenance" "typo fix")
+
+          for ((i=1;i<=COMMITS;i++)); do
+            MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
+            echo "$(date)" > activity.log
+            git add activity.log
+            git commit -m "$MSG"
+          done
+
+          git push
