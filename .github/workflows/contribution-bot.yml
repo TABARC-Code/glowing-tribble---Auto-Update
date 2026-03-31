@@ -1,49 +1,38 @@
-name: Activity Bot
+- name: Activity Bot
+  run: |
+    CHANCE=$((RANDOM % 100))
 
-on:
-  schedule:
-    - cron: "23 5 * * *"
-    - cron: "41 11 * * *"
-    - cron: "17 18 * * *"
-  workflow_dispatch:
+    if [ "$CHANCE" -lt 60 ]; then
+      echo "Skipping activity this run"
+      exit 0
+    fi
 
-permissions:
-  contents: write
+    git config --global user.name "Matthew Adlaird"
+    git config --global user.email "YOUR_GITHUB_EMAIL"
 
-jobs:
-  activity:
-    runs-on: ubuntu-latest
+    MESSAGES=(
+      "update docs"
+      "minor fix"
+      "refactor"
+      "cleanup"
+      "maintenance"
+      "small improvement"
+    )
 
-    steps:
-      - uses: actions/checkout@v4
+    MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
 
-      - name: Random activity
-        run: |
-          CHANCE=$((RANDOM % 100))
+    # Always ensure file changes
+    echo "$(date +%s)" > activity.log
 
-          if [ "$CHANCE" -lt 60 ]; then
-            echo "Skipping activity this run"
-            exit 0
-          fi
+    git add activity.log
 
-          git config --global user.name "Matthew Adlaird"
-          git config --global user.email "YOUR_GITHUB_EMAIL"
+    # Only commit if there are changes
+    if git diff --cached --quiet; then
+      echo "No changes to commit"
+      exit 0
+    fi
 
-          MESSAGES=(
-            "update docs"
-            "minor fix"
-            "refactor"
-            "cleanup"
-            "maintenance"
-            "small improvement"
-          )
+    git commit -m "$MSG"
 
-          MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
-
-          echo "$(date)" > activity.log
-
-          git add activity.log
-
-          git commit -m "$MSG" || exit 0
-
-          git push
+    # Push safely
+    git push || echo "Push failed (probably no changes)"
